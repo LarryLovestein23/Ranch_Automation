@@ -1,0 +1,80 @@
+// Motor Driver 1 connections
+const int motorDriver1PWM1 = 3; // PWM pin for Motor 1
+const int motorDriver1DIR1 = 2; // Direction pin for Motor 1
+const int motorDriver1PWM2 = 5; // PWM pin for Motor 2
+const int motorDriver1DIR2 = 4; // Direction pin for Motor 2
+
+// Motor Driver 2 connections
+const int motorDriver2PWM1 = 6; // PWM pin for Motor 3
+const int motorDriver2DIR1 = 7; // Direction pin for Motor 3
+const int motorDriver2PWM2 = 9; // PWM pin for Motor 4
+const int motorDriver2DIR2 = 8; // Direction pin for Motor 4
+
+void setup() {
+  // Set motor control pins as outputs
+  pinMode(motorDriver1PWM1, OUTPUT);
+  pinMode(motorDriver1DIR1, OUTPUT);
+  pinMode(motorDriver1PWM2, OUTPUT);
+  pinMode(motorDriver1DIR2, OUTPUT);
+  pinMode(motorDriver2PWM1, OUTPUT);
+  pinMode(motorDriver2DIR1, OUTPUT);
+  pinMode(motorDriver2PWM2, OUTPUT);
+  pinMode(motorDriver2DIR2, OUTPUT);
+
+  // Start with motors disabled
+  disableMotors();
+}
+
+void loop() {
+  // Test Motor 1: Forward
+  digitalWrite(motorDriver1DIR1, HIGH); // Set direction (HIGH for forward)
+  analogWrite(motorDriver1PWM1, 150);   // Set speed (0-255)
+  delay(2000); // Run forward for 2 seconds
+  
+  // Test Motor 1: Backward
+  digitalWrite(motorDriver1DIR1, LOW); // Set direction (LOW for backward)
+  analogWrite(motorDriver1PWM1, 150);  // Set speed (0-255)
+  delay(2000); // Run backward for 2 seconds
+  
+  // Test Motor 2: Forward
+  digitalWrite(motorDriver1DIR2, HIGH); // Set direction (HIGH for forward)
+  analogWrite(motorDriver1PWM2, 150);   // Set speed (0-255)
+  delay(2000); // Run forward for 2 seconds
+  
+  // Test Motor 2: Backward
+  digitalWrite(motorDriver1DIR2, LOW); // Set direction (LOW for backward)
+  analogWrite(motorDriver1PWM2, 150);  // Set speed (0-255)
+  delay(2000); // Run backward for 2 seconds
+  
+  // Test Motor 3: Forward
+  digitalWrite(motorDriver2DIR1, HIGH); // Set direction (HIGH for forward)
+  analogWrite(motorDriver2PWM1, 150);   // Set speed (0-255)
+  delay(2000); // Run forward for 2 seconds
+  
+  // Test Motor 3: Backward
+  digitalWrite(motorDriver2DIR1, LOW); // Set direction (LOW for backward)
+  analogWrite(motorDriver2PWM1, 150);  // Set speed (0-255)
+  delay(2000); // Run backward for 2 seconds
+  
+  // Test Motor 4: Forward
+  digitalWrite(motorDriver2DIR2, HIGH); // Set direction (HIGH for forward)
+  analogWrite(motorDriver2PWM2, 150);   // Set speed (0-255)
+  delay(2000); // Run forward for 2 seconds
+  
+  // Test Motor 4: Backward
+  digitalWrite(motorDriver2DIR2, LOW); // Set direction (LOW for backward)
+  analogWrite(motorDriver2PWM2, 150);  // Set speed (0-255)
+  delay(2000); // Run backward for 2 seconds
+  
+  // After testing all motors, stop them
+  disableMotors();
+  delay(5000); // Wait for 5 seconds before repeating the test
+}
+
+void disableMotors() {
+  // Turn off all motor drivers
+  analogWrite(motorDriver1PWM1, 0);
+  analogWrite(motorDriver1PWM2, 0);
+  analogWrite(motorDriver2PWM1, 0);
+  analogWrite(motorDriver2PWM2, 0);
+}
