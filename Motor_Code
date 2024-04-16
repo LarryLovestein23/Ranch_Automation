@@ -1,0 +1,170 @@
+// Motor Driver 1 connections
+const int motorDriver1PWM1 = 3; // PWM pin for Motor 1
+const int motorDriver1DIR1 = 2; // Direction pin for Motor 1
+const int motorDriver1PWM2 = 5; // PWM pin for Motor 2
+const int motorDriver1DIR2 = 4; // Direction pin for Motor 2
+
+// Motor Driver 2 connections
+const int motorDriver2PWM1 = 6; // PWM pin for Motor 3
+const int motorDriver2DIR1 = 7; // Direction pin for Motor 3
+const int motorDriver2PWM2 = 9; // PWM pin for Motor 4
+const int motorDriver2DIR2 = 8; // Direction pin for Motor 4
+
+const int buttonPin = 10; // Pin for the button
+
+// State machine states
+enum State {
+  IDLE,
+  MOVING_FORWARD_1,
+  MOVING_BACKWARD_1,
+  MOVING_FORWARD_2,
+  MOVING_BACKWARD_2,
+  MOVING_FORWARD_3,
+  MOVING_BACKWARD_3,
+  STOPPED
+};
+
+State currentState = IDLE; // Initial state
+
+unsigned long startTime; // Variable to store the start time
+unsigned long movementDuration1 = 5000; // Placeholder for Motor_1 and Motor_2 movement duration (in milliseconds)
+unsigned long movementDuration2 = 3000; // Placeholder for Motor_3 movement duration (in milliseconds)
+unsigned long movementDuration3 = 2000; // Placeholder for Motor_4 movement duration (in milliseconds)
+
+void setup() {
+  // Set motor control pins as outputs
+  pinMode(motorDriver1PWM1, OUTPUT);
+  pinMode(motorDriver1DIR1, OUTPUT);
+  pinMode(motorDriver1PWM2, OUTPUT);
+  pinMode(motorDriver1DIR2, OUTPUT);
+  pinMode(motorDriver2PWM1, OUTPUT);
+  pinMode(motorDriver2DIR1, OUTPUT);
+  pinMode(motorDriver2PWM2, OUTPUT);
+  pinMode(motorDriver2DIR2, OUTPUT);
+
+  // Set button pin as input
+  pinMode(buttonPin, INPUT_PULLUP);
+
+  // Start with motors disabled
+  disableMotors();
+}
+
+void loop() {
+  // Check if the button is pressed to start the sequence
+  if (digitalRead(buttonPin) == LOW && currentState == IDLE) {
+    currentState = MOVING_FORWARD_1;
+    startTime = millis(); // Record the start time
+  }
+
+  // State machine logic
+  switch (currentState) {
+    case MOVING_FORWARD_1:
+      // Control Motor 1
+      digitalWrite(motorDriver1DIR1, HIGH); // Set direction (HIGH for forward)
+      analogWrite(motorDriver1PWM1, 150);   // Set speed (0-255)
+
+      // Control Motor 2
+      digitalWrite(motorDriver1DIR2, HIGH);
+      analogWrite(motorDriver1PWM2, 150);
+
+      // Check if movement duration has elapsed
+      if (millis() - startTime >= movementDuration1) {
+        // Change state to MOVING_BACKWARD_1
+        currentState = MOVING_BACKWARD_1;
+        startTime = millis(); // Reset start time
+      }
+      break;
+
+    case MOVING_BACKWARD_1:
+      // Reverse Motor 1
+      digitalWrite(motorDriver1DIR1, LOW); // Set direction (LOW for backward)
+      analogWrite(motorDriver1PWM1, 150);   // Set speed (0-255)
+
+      // Reverse Motor 2
+      digitalWrite(motorDriver1DIR2, LOW);
+      analogWrite(motorDriver1PWM2, 150);
+
+      // Check if movement duration has elapsed
+      if (millis() - startTime >= movementDuration1) {
+        // Change state to MOVING_FORWARD_2
+        currentState = MOVING_FORWARD_2;
+        startTime = millis(); // Reset start time
+      }
+      break;
+
+    case MOVING_FORWARD_2:
+      // Control Motor 3
+      digitalWrite(motorDriver2DIR1, HIGH); // Set direction (HIGH for forward)
+      analogWrite(motorDriver2PWM1, 150);   // Set speed (0-255)
+
+      // Control Motor 4 (Motor_4 will stay in place)
+      analogWrite(motorDriver2PWM2, 0);
+
+      // Check if movement duration has elapsed
+      if (millis() - startTime >= movementDuration2) {
+        // Change state to MOVING_BACKWARD_2
+        currentState = MOVING_BACKWARD_2;
+        startTime = millis(); // Reset start time
+      }
+      break;
+
+    case MOVING_BACKWARD_2:
+      // Reverse Motor 3
+      digitalWrite(motorDriver2DIR1, LOW); // Set direction (LOW for backward)
+      analogWrite(motorDriver2PWM1, 150);   // Set speed (0-255)
+
+      // Check if movement duration has elapsed
+      if (millis() - startTime >= movementDuration2) {
+        // Change state to MOVING_FORWARD_3
+        currentState = MOVING_FORWARD_3;
+        startTime = millis(); // Reset start time
+      }
+      break;
+
+    case MOVING_FORWARD_3:
+      // Control Motor 4
+      digitalWrite(motorDriver2DIR2, HIGH); // Set direction (HIGH for forward)
+      analogWrite(motorDriver2PWM2, 150);   // Set speed (0-255)
+
+      // Check if movement duration has elapsed
+      if (millis() - startTime >= movementDuration3) {
+        // Change state to MOVING_BACKWARD_3
+        currentState = MOVING_BACKWARD_3;
+        startTime = millis(); // Reset start time
+      }
+      break;
+
+    case MOVING_BACKWARD_3:
+      // Reverse Motor 4
+      digitalWrite(motorDriver2DIR2, LOW); // Set direction (LOW for backward)
+      analogWrite(motorDriver2PWM2, 150);   // Set speed (0-255)
+
+      // Check if movement duration has elapsed
+      if (millis() - startTime >= movementDuration3) {
+        // Change state to STOPPED
+        currentState = STOPPED;
+      }
+      break;
+
+    case STOPPED:
+      // Check if the button is pressed again to start the sequence
+      if (digitalRead(buttonPin) == LOW) {
+        currentState = MOVING_FORWARD_1;
+        startTime = millis(); // Record the start time
+      }
+      break;
+
+    default:
+      break;
+  }
+
+  delay(100); // Delay to debounce the button
+}
+
+void disableMotors() {
+  // Turn off all motor drivers
+  analogWrite(motorDriver1PWM1, 0);
+  analogWrite(motorDriver1PWM2, 0);
+  analogWrite(motorDriver2PWM1, 0);
+  analogWrite(motorDriver2PWM2, 0);
+}
