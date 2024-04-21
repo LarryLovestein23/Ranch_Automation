@@ -1,0 +1,97 @@
+// Motor Driver 1 connections
+const int motorDriver1PWM1 = 3; // PWM pin for Motor 1
+const int motorDriver1DIR1 = 2; // Direction pin for Motor 1
+const int motorDriver1PWM2 = 5; // PWM pin for Motor 2
+const int motorDriver1DIR2 = 4; // Direction pin for Motor 2
+
+const int buttonPin = 10; // Pin for the button
+
+// State machine states
+enum State {
+  IDLE,
+  MOVING_FORWARD,
+  MOVING_BACKWARD,
+  STOPPED
+};
+
+State currentState = IDLE; // Initial state
+
+unsigned long startTime; // Variable to store the start time
+unsigned long movementDuration = 10000; // Movement duration for both motors (10 seconds)
+
+void setup() {
+  // Set motor control pins as outputs
+  pinMode(motorDriver1PWM1, OUTPUT);
+  pinMode(motorDriver1DIR1, OUTPUT);
+  pinMode(motorDriver1PWM2, OUTPUT);
+  pinMode(motorDriver1DIR2, OUTPUT);
+
+  // Set button pin as input
+  pinMode(buttonPin, INPUT_PULLUP);
+
+  // Start with motors disabled
+  disableMotors();
+}
+
+void loop() {
+  // Check if the button is pressed to start the sequence
+  if (digitalRead(buttonPin) == LOW && currentState == IDLE) {
+    currentState = MOVING_FORWARD;
+    startTime = millis(); // Record the start time
+  }
+
+  // State machine logic
+  switch (currentState) {
+    case MOVING_FORWARD:
+      // Control Motor 1 forward
+      digitalWrite(motorDriver1DIR1, HIGH); // Set direction (HIGH for forward)
+      analogWrite(motorDriver1PWM1, 50);    // Set speed (0-255)
+
+      // Control Motor 2 forward
+      digitalWrite(motorDriver1DIR2, HIGH);
+      analogWrite(motorDriver1PWM2, 50);
+
+      // Check if movement duration has elapsed
+      if (millis() - startTime >= movementDuration) {
+        // Change state to MOVING_BACKWARD
+        currentState = MOVING_BACKWARD;
+        startTime = millis(); // Reset start time
+      }
+      break;
+
+    case MOVING_BACKWARD:
+      // Reverse Motor 1
+      digitalWrite(motorDriver1DIR1, LOW); // Set direction (LOW for backward)
+      analogWrite(motorDriver1PWM1, 50);   // Set speed (0-255)
+
+      // Reverse Motor 2
+      digitalWrite(motorDriver1DIR2, LOW);
+      analogWrite(motorDriver1PWM2, 50);
+
+      // Check if movement duration has elapsed
+      if (millis() - startTime >= movementDuration) {
+        // Change state to STOPPED
+        currentState = STOPPED;
+      }
+      break;
+
+    case STOPPED:
+      // Check if the button is pressed again to start the sequence
+      if (digitalRead(buttonPin) == LOW) {
+        currentState = MOVING_FORWARD;
+        startTime = millis(); // Record the start time
+      }
+      break;
+
+    default:
+      break;
+  }
+
+  delay(100); // Delay to debounce the button
+}
+
+void disableMotors() {
+  // Turn off all motor drivers
+  analogWrite(motorDriver1PWM1, 0);
+  analogWrite(motorDriver1PWM2, 0);
+}
