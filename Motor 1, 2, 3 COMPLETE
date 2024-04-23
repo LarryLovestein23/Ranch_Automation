@@ -1,0 +1,176 @@
+// Motor Driver 1 connections
+const int motorDriver1PWM1 = 3; // PWM pin for Motor 1
+const int motorDriver1DIR1 = 2; // Direction pin for Motor 1
+const int motorDriver1PWM2 = 5; // PWM pin for Motor 2
+const int motorDriver1DIR2 = 4; // Direction pin for Motor 2
+
+// Motor Driver 2 connections
+const int motorDriver2PWM1 = 6; // PWM pin for Motor 3
+const int motorDriver2DIR1 = 7; // Direction pin for Motor 3
+
+const int buttonPin = 10; // Pin for the button
+
+// State machine states
+enum State {
+  IDLE,
+  MOVING_BACKWARD,
+  MOVING_FORWARD,
+  STOPPED
+};
+
+State currentState = IDLE; // Initial state
+
+unsigned long startTime; // Variable to store the start time
+unsigned long backwardDuration1 = 93000; // Backward movement duration for Motor 1 (93 seconds)
+unsigned long forwardDuration1 = 93000; // Forward movement duration for Motor 1 (93 seconds)
+unsigned long backwardDuration2 = 96000; // Backward movement duration for Motor 2 (96 seconds)
+unsigned long forwardDuration2 = 96000; // Forward movement duration for Motor 2 (96 seconds)
+unsigned long backwardDuration3 = 57000; // Backward movement duration for Motor 3 (40 seconds)
+unsigned long forwardDuration3 = 57000; // Forward movement duration for Motor 3 (40 seconds)
+
+int buttonPressCount = 0; // Variable to count button presses
+
+void setup() {
+  // Set motor control pins as outputs
+  pinMode(motorDriver1PWM1, OUTPUT);
+  pinMode(motorDriver1DIR1, OUTPUT);
+  pinMode(motorDriver1PWM2, OUTPUT);
+  pinMode(motorDriver1DIR2, OUTPUT);
+  pinMode(motorDriver2PWM1, OUTPUT);
+  pinMode(motorDriver2DIR1, OUTPUT);
+
+  // Set button pin as input
+  pinMode(buttonPin, INPUT_PULLUP);
+
+  // Start with motors disabled
+  disableMotors();
+}
+
+void loop() {
+  // Check if the button is pressed
+  if (digitalRead(buttonPin) == LOW) {
+    delay(50); // Debounce delay
+    if (digitalRead(buttonPin) == LOW) {
+      buttonPressCount++; // Increment button press count
+      if (buttonPressCount == 1) {
+        startProgram(); // Start the program on first button press
+      } else if (buttonPressCount == 2) {
+        stopProgram(); // Stop the program on second button press
+      }
+    }
+  } else {
+    // Reset button press count when button is released
+    buttonPressCount = 0;
+  }
+
+  // State machine logic
+  switch (currentState) {
+    case MOVING_BACKWARD:
+      // Control Motor 1 backward
+      digitalWrite(motorDriver1DIR1, LOW); // Set direction (LOW for backward)
+      analogWrite(motorDriver1PWM1, 255);   // Set maximum speed
+
+      // Control Motor 2 backward
+      digitalWrite(motorDriver1DIR2, LOW); // Set direction (LOW for backward)
+      analogWrite(motorDriver1PWM2, 255);   // Set maximum speed
+
+      // Control Motor 3 backward
+      digitalWrite(motorDriver2DIR1, LOW); // Set direction (LOW for backward)
+      analogWrite(motorDriver2PWM1, 255);   // Set maximum speed
+
+      // Check if backward movement duration has elapsed for each motor individually
+      if ((millis() - startTime >= backwardDuration1) || (millis() - startTime >= backwardDuration2) || (millis() - startTime >= backwardDuration3)) {
+        if (millis() - startTime >= backwardDuration1) {
+          disableMotor1(); // Stop Motor 1 if its backward movement duration has elapsed
+        }
+        if (millis() - startTime >= backwardDuration2) {
+          disableMotor2(); // Stop Motor 2 if its backward movement duration has elapsed
+        }
+        if (millis() - startTime >= backwardDuration3) {
+          disableMotor3(); // Stop Motor 3 if its backward movement duration has elapsed
+        }
+        // Check if all motors have stopped
+        if (!isMotorMoving()) {
+          // Change state to MOVING_FORWARD
+          currentState = MOVING_FORWARD;
+          startTime = millis(); // Reset start time for forward movement
+        }
+      }
+      break;
+
+    case MOVING_FORWARD:
+      // Control Motor 1 forward
+      digitalWrite(motorDriver1DIR1, HIGH); // Set direction (HIGH for forward)
+      analogWrite(motorDriver1PWM1, 255);    // Set maximum speed
+
+      // Control Motor 2 forward
+      digitalWrite(motorDriver1DIR2, HIGH); // Set direction (HIGH for forward)
+      analogWrite(motorDriver1PWM2, 255);    // Set maximum speed
+
+      // Control Motor 3 forward
+      digitalWrite(motorDriver2DIR1, HIGH); // Set direction (HIGH for forward)
+      analogWrite(motorDriver2PWM1, 255);    // Set maximum speed
+
+      // Check if forward movement duration has elapsed for each motor individually
+      if ((millis() - startTime >= forwardDuration1) || (millis() - startTime >= forwardDuration2) || (millis() - startTime >= forwardDuration3)) {
+        if (millis() - startTime >= forwardDuration1) {
+          disableMotor1(); // Stop Motor 1 if its forward movement duration has elapsed
+        }
+        if (millis() - startTime >= forwardDuration2) {
+          disableMotor2(); // Stop Motor 2 if its forward movement duration has elapsed
+        }
+        if (millis() - startTime >= forwardDuration3) {
+          disableMotor3(); // Stop Motor 3 if its forward movement duration has elapsed
+        }
+        // Check if all motors have stopped
+        if (!isMotorMoving()) {
+          // Change state to IDLE
+          currentState = IDLE;
+        }
+      }
+      break;
+
+    default:
+      break;
+  }
+
+  delay(100); // Delay to debounce the button
+}
+
+void startProgram() {
+  // Start all motors moving backward
+  currentState = MOVING_BACKWARD;
+  startTime = millis(); // Record the start time
+}
+
+void stopProgram() {
+  currentState = STOPPED;
+  disableMotors(); // Stop all motors immediately
+}
+
+void disableMotors() {
+  // Turn off all motor drivers
+  analogWrite(motorDriver1PWM1, 0);
+  analogWrite(motorDriver1PWM2, 0);
+  analogWrite(motorDriver2PWM1, 0);
+}
+
+void disableMotor1() {
+  // Turn off Motor 1
+  analogWrite(motorDriver1PWM1, 0);
+}
+
+void disableMotor2() {
+  // Turn off Motor 2
+  analogWrite(motorDriver1PWM2, 0);
+}
+
+void disableMotor3() {
+  // Turn off Motor 3
+  analogWrite(motorDriver2PWM1, 0);
+}
+
+bool isMotorMoving() {
+  // Check if any motor is still moving
+  return digitalRead(motorDriver1PWM1) > 0 || digitalRead(motorDriver1PWM2) > 0 || digitalRead(motorDriver2PWM1) > 0;
+}
